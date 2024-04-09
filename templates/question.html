@@ -1,0 +1,57 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="col-9">
+        <div class="mb-3 border-bottom border-secondary">
+            <article>
+                <div class="row pb-3">
+                    <div class="col-2">
+                        <div class="border mb-3" style="height: 100px; width: 100px">
+                            <img src="{% static 'img/default.jpg' %}" class="img-fluid rounded-start"
+                                 onerror="this.onerror=null; this.src='{% static 'img/default.jpg' %}';" alt="..."/>
+                        </div>
+
+                        <div class="col-5">
+                            <div class="input-group flex-nowrap">
+                                <input type="number" value="{{ question.likes }}" class="form-control"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col me-2">
+                        <div class="card-body">
+                            <h5 class="card-title"><p>{{ question.title }}</p></h5>
+                            <p class="card-text">{{ question.text }}</p>
+                            <div class="row">
+                                <div class="col-8">
+                                    <span>Tags:</span>
+                                    {% for tag in question.tags %}
+                                        <a href="{% url 'tag' tag %}">{{ tag }}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div class="mb-3 border-bottom border-secondary">
+            {% for answer in answers %}
+                {% include 'layouts/answer.html' %}
+            {% endfor %}
+
+            {% include 'layouts/pagination.html' %}
+        </div>
+
+        {% include "layouts/pagination.html" with page_obj=answers %}
+
+        <div>
+            <textarea name="answer" style="width: 100%" rows="3" class="mb-2"
+                      placeholder="Enter your answer here."></textarea>
+            <button type="button" class="btn btn-dark">Answer</button>
+        </div>
+    </div>
+{% endblock %}
+

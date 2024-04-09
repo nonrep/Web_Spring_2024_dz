@@ -1,0 +1,67 @@
+{% if page_obj.has_other_pages %}
+    {% with prev=page_obj.has_previous next=page_obj.has_next last=page_obj.paginator.num_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <li class="page-item">
+                    <a class="page-link" href="?page=1"> << </a>
+                </li>
+
+                <li class="page-item {% if not prev %} disabled {% endif %}">
+                    <a class="page-link" href="?page={% if prev %}{{ page_obj.previous_page_number }}{% endif %}">
+                        < </a>
+                </li>
+
+                {% if page_obj.number > 2 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">1</a>
+                    </li>
+                    {% if page_obj.number > 3 %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=2">2</a>
+                        </li>
+                    {% endif %}
+                {% endif %}
+
+                {% if page_obj.number > 4 %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+
+                {% if page_obj.number > 1 %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <a class="page-link" href="?page={{ page_obj.number }}"> {{ page_obj.number }} </a>
+                </li>
+
+                {% if until_last > 0 %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
+                    </li>
+                {% endif %}
+
+                {% if until_last > 2 %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+
+                {% if until_last > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ last }}"> {{ last }} </a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item {% if not next %} disabled {% endif %}">
+                    <a class="page-link" href="?page={% if next %}{{ page_obj.next_page_number }}{% endif %}">
+                        > </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ last }}"> >> </a>
+                </li>
+            </ul>
+        </nav>
+    {% endwith %}
+{% endif %}

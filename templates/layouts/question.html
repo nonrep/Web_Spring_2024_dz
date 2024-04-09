@@ -1,0 +1,34 @@
+{% load static %}
+<article class="card mb-4 w-100">
+    <div class="row g-0">
+        <div class="col-2 p-2">
+            <div class="border w-100 mb-3" style="height: 150px">
+                <img src="{% static 'img/default.jpg' %}" class="img-fluid rounded-start" alt="..."
+                     style="max-width: 100%;"/>
+            </div>
+            <div class="input-group flex-nowrap">
+                <input type="number" value="{{ question.likes }}" class="form-control"/>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="{% url 'question' question.id %}">{{ question.title }}</a>
+                </h5>
+                <p class="card-text">
+                    {{ question.text }}
+                </p>
+                <div class="row">
+                    <a class="col-4" href="{% url 'question' question.id %}">answers
+                        ({{ question.count_of_answers }})</a>
+                    <div class="col-8">
+                        <span>Tags</span>
+                        {% for tag in question.tags %}
+                            <a href="{% url 'tag' tag %}">{{ tag }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</article>

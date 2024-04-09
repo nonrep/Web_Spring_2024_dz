@@ -1,0 +1,18 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="col-9">
+        <div class="d-flex gap-3 align-items-center mb-4">
+            <h1>Tag: {{ tag }}</h1>
+            <div class="ms-auto"></div>
+            <a class="btn btn-success" href="{% url 'ask' %}" role="button">Ask Question</a>
+        </div>
+        {% for question in questions %}
+            {% include "layouts/question.html" %}
+        {% endfor %}
+
+        {% include "layouts/pagination.html" with items=questions %}
+    </div>
+{% endblock %}
+
