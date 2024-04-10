@@ -8,13 +8,13 @@
                 <div class="row pb-3">
                     <div class="col-2">
                         <div class="border mb-3" style="height: 100px; width: 100px">
-                            <img src="{% static 'img/default.jpg' %}" class="img-fluid rounded-start"
+                            <img src="{% static 'img/' %}{{ question.user.profile.avatar }}" class="img-fluid rounded-start"
                                  onerror="this.onerror=null; this.src='{% static 'img/default.jpg' %}';" alt="..."/>
                         </div>
 
                         <div class="col-5">
                             <div class="input-group flex-nowrap">
-                                <input type="number" value="{{ question.likes }}" class="form-control"/>
+                                <input type="number" value="{{ question.questionlike_set.all.count }}" class="form-control"/>
                             </div>
                         </div>
                     </div>
@@ -22,11 +22,11 @@
                     <div class="col me-2">
                         <div class="card-body">
                             <h5 class="card-title"><p>{{ question.title }}</p></h5>
-                            <p class="card-text">{{ question.text }}</p>
+                            <p class="card-text">{{ question.content }}</p>
                             <div class="row">
                                 <div class="col-8">
                                     <span>Tags:</span>
-                                    {% for tag in question.tags %}
+                                    {% for tag in question.tags.all %}
                                         <a href="{% url 'tag' tag %}">{{ tag }}</a>
                                     {% endfor %}
                                 </div>

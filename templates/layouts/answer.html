@@ -6,13 +6,13 @@
             <div class="col-2">
                 <div class="m-3 mt-2">
                     <div class="border mb-3" style="height: 75px; width: 75px">
-                        <img src="{% static 'img/default.jpg' %}" class="img-fluid rounded-start"
+                        <img src="{% static 'img/' %}{{ answer.user.profile.avatar }}" class="img-fluid rounded-start"
                              onerror="this.onerror=null; this.src='{% static 'img/default.jpg' %}';"
                              alt="..."/>
                     </div>
                     <div class="col-7">
                         <div class="input-group flex-nowrap">
-                            <input type="number" value="{{ answer.likes }}" class="form-control"/>
+                            <input type="number" value="{{ answer.answerlike_set.all.count }}" class="form-control"/>
                         </div>
                     </div>
                 </div>
@@ -21,7 +21,7 @@
 
             <div class="col">
                 <div class="mt-2">
-                    <p class="ms-0">{{ answer.text }}</p>
+                    <p class="ms-0">{{ answer.content }}</p>
                     <div class="form-check">
                         <input class="form-check-input {% if  answer.correct %}checked{% endif %}" type="checkbox"
                                value="">

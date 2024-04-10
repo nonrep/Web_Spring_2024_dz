@@ -2,36 +2,16 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import Http404
 from django.shortcuts import render
 
+from app.models import *
+
 # Create your views here.
-QUESTIONS = [
-    {
-        'id': i,
-        'title': f'Question {i}',
-        'text': f'This is text of question {i}',
-        'tags': ['first', 'second', 'third', 'fourth', 'fifth']
-        ,
-        'likes': (i + 4) % 5,
-        'answers': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        'count_of_answers': 10
-    } for i in range(200)
-]
-
-ANSWERS = [
-    {
-        'id': i,
-        'text': f'This is answer {i}',
-        'correct': True,
-        'likes': (i + 2) % 5,
-    } for i in range(20)
-]
-
 BEST_MEMBERS = [
     {
         'id': i,
         'nickname': f'Best member {i}',
     } for i in range(5)
 ]
-
+BEST_MEMBERS = Profile.objects.order_by('-rating')[:5]
 colors = ['primary', 'secondary', 'danger', 'warning', 'info', 'light', 'dark']
 
 POPULAR_TAGS = [
@@ -42,6 +22,7 @@ POPULAR_TAGS = [
     } for i in range(10)
 ]
 
+#POPULAR_TAGS = Tag.objects.annotate(num_questions=Count('question')).order_by('-num_questions')[:10]
 
 def paginate(object_list, request, per_page=10):
     page_num = request.GET.get('page', 1)
@@ -58,14 +39,19 @@ def paginate(object_list, request, per_page=10):
 
 
 def index(request):
-    page_obj, until_last = paginate(QUESTIONS, request)
+    questions = Question.objects.get_new()
+    page_obj, until_last = paginate(questions, request, 20)
     return render(request, 'index.html',
                   {'questions': page_obj, 'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS,
                    'until_last': until_last})
 
 
 def hot(request):
-    page_obj, until_last = paginate(QUESTIONS, request)
+    try:
+        questions = Question.objects.get_hot()
+    except Question.DoesNotExist:
+        return Http404('Questions does not exist')
+    page_obj, until_last = paginate(questions, request, 20)
     return render(request, 'hot.html',
                   {'questions': page_obj, 'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS,
                    'until_last': until_last})
@@ -81,13 +67,11 @@ def ask(request):
 
 def question(request, question_id):
     try:
-        question = QUESTIONS[question_id]
-        answers = []
-        for answer in question['answers']:
-            answers.append(ANSWERS[answer])
+        question = Question.objects.get(pk=question_id)
+        answers = Answer.object.get_answers(question)
     except IndexError:
         raise Http404('Question not found')
-    page_obj, until_last = paginate(answers, request, 3)
+    page_obj, until_last = paginate(answers, request, 30)
     return render(request, 'question.html',
                   {'question': question, 'answers': page_obj, 'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS,
                    'until_last': until_last})
@@ -101,13 +85,12 @@ def signup(request):
     return render(request, 'signup.html', {'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS})
 
 
-def tag(request, tag_id):
+def tag(request, tag):
     try:
-        questions = []
-        for question in QUESTIONS:
-            if tag_id in question['tags']:
-                questions.append(question)
+        questions = Question.objects.get_by_tag(tag)
     except IndexError:
         raise Http404('Tag not found')
+    page_obj, until_last = paginate(questions, request, 20)
     return render(request, 'tag.html',
-                  {'tag': tag_id, 'questions': questions, 'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS})
+                  {'tag': tag, 'questions': page_obj, 'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS,
+                   'until_last': until_last})
