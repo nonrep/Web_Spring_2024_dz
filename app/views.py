@@ -1,28 +1,19 @@
+import random
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import render
 
 from app.models import *
 
 # Create your views here.
-BEST_MEMBERS = [
-    {
-        'id': i,
-        'nickname': f'Best member {i}',
-    } for i in range(5)
-]
 BEST_MEMBERS = Profile.objects.order_by('-rating')[:5]
+
 colors = ['primary', 'secondary', 'danger', 'warning', 'info', 'light', 'dark']
+POPULAR_TAGS = Tag.objects.annotate(count=Count('id')).order_by('-count')[:10]
+for tag in POPULAR_TAGS:
+    tag.color = random.choice(colors)
 
-POPULAR_TAGS = [
-    {
-        'id': i,
-        'name': f'tag_{i}',
-        'color': colors[i % 7],
-    } for i in range(10)
-]
-
-#POPULAR_TAGS = Tag.objects.annotate(num_questions=Count('question')).order_by('-num_questions')[:10]
 
 def paginate(object_list, request, per_page=10):
     page_num = request.GET.get('page', 1)

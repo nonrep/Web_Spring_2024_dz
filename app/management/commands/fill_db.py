@@ -1,7 +1,8 @@
 from django.core.checks import Tags
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from django.db.models import Avg
+import time
+
 
 from app.models import *
 import random
@@ -15,6 +16,7 @@ class Command(BaseCommand):
         parser.add_argument('ratio', type=int)
 
     def handle(self, *args, **options):
+        start_time = time.time()
         ratio = options.get('ratio')
         users = []
         profiles = []
@@ -74,9 +76,10 @@ class Command(BaseCommand):
 
         for i in range(ratio):
             user = users[i]
-            question = questions[i]
-            like = QuestionLike(user=user, question=question)
-            questions_likes.append(like)
+            for j in range(random.randint(1, 5)):
+                question = questions[j]
+                like = QuestionLike(user=user, question=question)
+                questions_likes.append(like)
 
         for i in range(ratio):
             user = users[i]
@@ -110,3 +113,4 @@ class Command(BaseCommand):
         print('Answer rating updated')
 
         print('all data created')
+        print(time.time() - start_time)

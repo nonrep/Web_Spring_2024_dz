@@ -6,7 +6,7 @@ from django.db import models
 
 class QuestionManager(models.Manager):
     def get_new(self):
-        return Question.objects.order_by('created_at')
+        return Question.objects.order_by('-created_at')
 
     def get_hot(self):
         return Question.objects.order_by('-rating', 'created_at')
