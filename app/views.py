@@ -1,8 +1,11 @@
 import random
+
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Count
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_GET
 
 from app.models import *
 
@@ -29,6 +32,7 @@ def paginate(object_list, request, per_page=10):
     return page_obj, until_last
 
 
+@require_GET
 def index(request):
     questions = Question.objects.get_new()
     page_obj, until_last = paginate(questions, request, 20)
@@ -37,51 +41,65 @@ def index(request):
                    'until_last': until_last})
 
 
+@require_GET
 def hot(request):
-    try:
-        questions = Question.objects.get_hot()
-    except Question.DoesNotExist:
-        return Http404('Questions does not exist')
+    questions = Question.objects.get_hot()
     page_obj, until_last = paginate(questions, request, 20)
     return render(request, 'hot.html',
                   {'questions': page_obj, 'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS,
                    'until_last': until_last})
 
 
+@require_GET
 def settings(request):
     return render(request, 'settings.html', {'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS})
 
 
+@require_GET
 def ask(request):
     return render(request, 'ask.html', {'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS})
 
 
+@require_GET
 def question(request, question_id):
-    try:
-        question = Question.objects.get(pk=question_id)
-        answers = Answer.object.get_answers(question)
-    except IndexError:
-        raise Http404('Question not found')
+    question = get_object_or_404(Question, pk=question_id)
+    answers = Answer.object.get_answers(question)
+
     page_obj, until_last = paginate(answers, request, 30)
     return render(request, 'question.html',
-                  {'question': question, 'answers': page_obj, 'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS,
-                   'until_last': until_last})
+                  {'question': question,
+                   'answers': page_obj,
+                   'members': BEST_MEMBERS,
+                   'popular_tags': POPULAR_TAGS,
+                   'until_last': until_last
+                   })
 
 
 def login(request):
-    return render(request, 'login.html', {'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS})
+    return render(request, 'login.html', {
+        'members': BEST_MEMBERS,
+        'popular_tags': POPULAR_TAGS
+    })
 
 
 def signup(request):
-    return render(request, 'signup.html', {'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS})
+    return render(request, 'signup.html', {
+        'members': BEST_MEMBERS,
+        'popular_tags': POPULAR_TAGS
+    })
 
 
+@require_GET
 def tag(request, tag):
     try:
         questions = Question.objects.get_by_tag(tag)
-    except IndexError:
-        raise Http404('Tag not found')
+    except ObjectDoesNotExist:
+        raise Http404
     page_obj, until_last = paginate(questions, request, 20)
-    return render(request, 'tag.html',
-                  {'tag': tag, 'questions': page_obj, 'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS,
-                   'until_last': until_last})
+    return render(request, 'tag.html', {
+        'tag': tag,
+        'questions': page_obj,
+        'members': BEST_MEMBERS,
+        'popular_tags': POPULAR_TAGS,
+        'until_last': until_last
+    })
