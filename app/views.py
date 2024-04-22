@@ -1,18 +1,23 @@
 import random
 
+from django.contrib import auth, messages
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Count
-from django.http import Http404
-from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_http_methods, require_POST
+from django.http import Http404, HttpResponse
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.views.decorators.http import require_GET
 
+from app.forms import LoginForm, SignUpForm
 from app.models import *
 
 # Create your views here.
 BEST_MEMBERS = Profile.objects.order_by('-rating')[:5]
 
-colors = ['primary', 'secondary', 'danger', 'warning', 'info', 'light', 'dark']
+colors = ['primary', 'secondary', 'danger', 'warning', 'info', 'dark']
 POPULAR_TAGS = Tag.objects.annotate(count=Count('id')).order_by('-count')[:10]
 for tag in POPULAR_TAGS:
     tag.color = random.choice(colors)
@@ -51,11 +56,13 @@ def hot(request):
 
 
 @require_GET
+@login_required(login_url='login')
 def settings(request):
     return render(request, 'settings.html', {'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS})
 
 
 @require_GET
+@login_required(login_url='login')
 def ask(request):
     return render(request, 'ask.html', {'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS})
 
@@ -75,17 +82,54 @@ def question(request, question_id):
                    })
 
 
+@require_http_methods(['GET', 'POST'])
 def login(request):
+    if request.method == 'GET':
+        login_form = LoginForm()
+    if request.method == 'POST':
+        login_form = LoginForm(data=request.POST)
+        if login_form.is_valid():
+            user = auth.authenticate(request, **login_form.cleaned_data)
+            if user:
+                auth.login(request, user)
+                return redirect('index')
+            else:
+                login_form.add_error(None, 'Wrong login or password!')
+
     return render(request, 'login.html', {
         'members': BEST_MEMBERS,
-        'popular_tags': POPULAR_TAGS
+        'popular_tags': POPULAR_TAGS,
+        'form': login_form,
     })
 
 
+def logout(request):
+    auth.logout(request)
+    return redirect(reverse('login'))
+
+
+@require_http_methods(['GET', 'POST'])
 def signup(request):
+    if request.method == 'GET':
+        signup_form = SignUpForm()
+    if request.method == 'POST':
+        signup_form = SignUpForm(data=request.POST)
+        if signup_form.is_valid():
+            if User.objects.filter(username=signup_form.cleaned_data['username']).exists():
+                signup_form.add_error('username', 'Login taken enter another and try again')
+            elif User.objects.filter(email=signup_form.cleaned_data['email']).exists():
+                signup_form.add_error('email', 'Email taken enter another and try again')
+            else:
+                user = signup_form.save()
+                if user:
+                    return redirect(reverse('login'))
+                else:
+                    signup_form.add_error(None, "User saving error!")
+
     return render(request, 'signup.html', {
         'members': BEST_MEMBERS,
-        'popular_tags': POPULAR_TAGS
+        'popular_tags': POPULAR_TAGS,
+        'form': signup_form,
     })
 
 

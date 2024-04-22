@@ -21,18 +21,31 @@
                 <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
                 <button class="btn btn-success" type="submit">Search</button>
             </form>
-            <div class="d-flex justify-content-between gap-3">
-                <div class="border">
-                    <img src="{% static 'img/' %}{{ avatar }}" width="50" height="50"
-                         onerror="this.onerror=null; this.src='{% static 'img/default.jpg' %}';" alt="..."/>
-                </div>
-                <div class="d-flex flex-column justify-content-between">
-                    <div>Dr. Pepper</div>
-                    <div><a href="{% url 'settings' %}">Settings</a>
-                        <a href="{% url 'login' %}">Log out</a>
+            {% if user.is_authenticated %}
+                <div class="d-flex justify-content-between gap-3">
+                    <div class="border">
+                        <img src="{% static 'img/' %}{{ user.profile.avatar }}" width="50" height="50"
+                             onerror="this.onerror=null; this.src='{% static 'img/default.jpg' %}';" alt="..."/>
+                    </div>
+                    <div class="d-flex flex-column justify-content-between">
+                        <div>{{ user.username }}</div>
+                        <div><a class="link-offset-2 link-underline link-underline-opacity-0"
+                                href="{% url 'settings' %}">Settings</a>
+                            <a class="link-danger link-offset-2 link-underline-opacity-0 link-underline-opacity-100-hover"
+                               href="{% url 'logout' %}">Log out</a>
+                        </div>
                     </div>
                 </div>
-            </div>
+            {% else %}
+                <div class="d-flex justify-content-between gap-3">
+                    <div class="d-flex flex-column justify-content-between">
+                        <div>
+                            <a href="{% url 'login' %}">Log in</a>
+                            <a href="{% url 'signup' %}">Sign up</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </nav>
 </header>
@@ -47,14 +60,15 @@
             <div class="row">
                 <div class="col">
                     {% for tag in popular_tags %}
-                        <span class="badge text-bg-{{ tag.color }}">{{ tag.name }}</span>
+                        <a class="btn btn-outline-{{ tag.color }} p-1 m-1" href="{% url 'tag' tag %}">{{ tag }}</a>
                     {% endfor %}
                 </div>
             </div>
             <h3 class="mt-5">Best Members</h3>
             <div>
                 {% for member in members %}
-                    <a href="#" class="d-block mb-1">{{ member.user.username }}</a>
+{#                    <a href="#" class="d-block mb-1">{{ member.user.username }}</a>#}
+                    <h5 class="m-1 ms-4">{{ member.user.username }}</h5>
                 {% endfor %}
             </div>
         </div>
