@@ -11,7 +11,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.views.decorators.http import require_GET
 
-from app.forms import LoginForm, SignUpForm
+from app.forms import LoginForm, SignUpForm, AskForm, AnswerForm
 from app.models import *
 
 # Create your views here.
@@ -61,15 +61,35 @@ def settings(request):
     return render(request, 'settings.html', {'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS})
 
 
-@require_GET
+@require_http_methods(['GET', 'POST'])
 @login_required(login_url='login')
 def ask(request):
-    return render(request, 'ask.html', {'members': BEST_MEMBERS, 'popular_tags': POPULAR_TAGS})
+    if request.method == "GET":
+        form = AskForm()
+    elif request.method == 'POST':
+        form = AskForm(request.POST)
+        if form.is_valid():
+            question = form.save(user=request.user)
+            question_url = reverse('question', args=[question.id])
+            return redirect(question_url)
+    return render(request, 'ask.html', {
+                          'members': BEST_MEMBERS,
+                          'popular_tags': POPULAR_TAGS,
+                          'form': form,
+                        })
 
-
-@require_GET
+@require_http_methods(['GET', 'POST'])
+@login_required(login_url='login')
 def question(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
+    if request.method == "GET":
+        form = AnswerForm()
+    elif request.method == "POST":
+        form = AnswerForm(request.POST)
+        if form.is_valid():
+            form.save(question=question, user=request.user)
+            question_url = reverse('question', args=[question.id])
+            return redirect(question_url)
     answers = Answer.object.get_answers(question)
 
     page_obj, until_last = paginate(answers, request, 30)
@@ -78,15 +98,17 @@ def question(request, question_id):
                    'answers': page_obj,
                    'members': BEST_MEMBERS,
                    'popular_tags': POPULAR_TAGS,
-                   'until_last': until_last
+                   'until_last': until_last,
+                   'form': form,
                    })
+
 
 
 @require_http_methods(['GET', 'POST'])
 def login(request):
     if request.method == 'GET':
         login_form = LoginForm()
-    if request.method == 'POST':
+    elif request.method == 'POST':
         login_form = LoginForm(data=request.POST)
         if login_form.is_valid():
             user = auth.authenticate(request, **login_form.cleaned_data)
@@ -112,7 +134,7 @@ def logout(request):
 def signup(request):
     if request.method == 'GET':
         signup_form = SignUpForm()
-    if request.method == 'POST':
+    elif request.method == 'POST':
         signup_form = SignUpForm(data=request.POST)
         if signup_form.is_valid():
             if User.objects.filter(username=signup_form.cleaned_data['username']).exists():
